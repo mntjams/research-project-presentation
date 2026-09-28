@@ -2,14 +2,14 @@
 \usetheme{Boadilla}
 
 \title[Research project]
-{Improving Performance of a Poisson Solver}
+{Improving the Performance of a Poisson Solver}
 \author{Matouš Zatloukal}
 \date{2026}
 
 \AtBeginSection[]
 {
   \begin{frame}
-    \frametitle{Table of Contents}
+    \frametitle{Table of contents}
     \tableofcontents[currentsection]
   \end{frame}
 }
@@ -17,6 +17,154 @@
 \begin{document}
 
 \frame{\titlepage}
+
+% TODO - Delete subsections
+\section{Introduction}
+\begin{frame}
+    \frametitle{Computational fluid dynamics}
+    \begin{block}{What is CFD?}
+        Computational fluid dynamics (CFD) is a branch of fluid mechanics that employs numerical techniques to predict fluid flow. \pause
+    \end{block}
+    \begin{itemize}
+        \item CFD is applied to a range of research and engineering problems, including aerodynamics, weather simulation, and heat transfer analysis. \pause
+        \item The basis of CFD are the \alert{Navier-Stokes equations}.
+        \item These describe motion of viscous fluids.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Computational fluid dynamics}
+    \begin{block}{Navier-Stokes equations}
+        The Navier-Stokes equations are
+        \[
+            \rho (\frac{\delta \mathbf{u}}{\delta t} + \mathbf{u} \cdot \nabla \mathbf{u}) = -\nabla p + \mu\nabla^2 \mathbf{u} + F
+        \]
+        with
+        \begin{itemize}
+            \item fluid density $\rho$,
+            \item velocity vector field $\mathbf{u}$,
+            \item time $t$,
+            \item pressure field $p$,
+            \item dynamic viscosity $\mu$, and
+            \item external forces $F$.
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}
+    \frametitle{ELMM}
+    \begin{itemize}
+        \item Extended Large Eddy Microscale Model (ELMM) is a Large Eddy Simulation (LES) model for atmospheric flows.
+        \item It is developed by the department of atmospheric physics.
+        \item It computes how wind moves in the atmosphere. \pause
+        \item In each time step a \alert{Poisson equation} must be solved.
+    \end{itemize}
+    \begin{block}{Poisson equation}
+        The Poisson equation is
+        \[
+            \Delta \phi = b
+        \]
+        with
+        \begin{itemize}
+            \item pressure change $\phi$, and
+            \item net outflow of predicted wind $b$.
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\section{PoisFFT}
+\begin{frame}
+    \frametitle{Poisson solver}
+    \begin{itemize}
+        \item PoisFFT is a library developed by the department of atmospheric physics to solve the Poisson equation. \pause
+        \item PoisFFT was determined to be the best starting point for ELMM performance improve. \pause
+        \note{
+            - It is a self-contained library
+            - Takes up noticable portion of the run-time.
+        }
+        \item It solves the equation using an FFT-based method
+        \item It utilizes only CPUs.
+            \begin{itemize}
+                \item OpenMP used for single-node parallelization, and
+                \item MPI used for multi-node parallelization.
+                \item Hybrid MPI + OpenMP option also available but deemed unstable.
+                \note {
+                    - While measuring the performance, we encountered several configurations where PoisFFT straight up segfaulted
+                    - See next slide for configuration definition
+                    - With no existing documentation and PFFTs (PoisFFT multi-node FFT library) hybrid option being in development for the past 10 years, we gave up on that
+                }
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Outside view of PoisFFT}
+    \begin{itemize}
+        \item The user first selects a solver based on dimensionality and floating-point precision. \pause
+        \item Afeterwards, he defines a domain. \pause
+            \begin{itemize}
+                \item That is, number of grid cells, \pause
+                \item grid lengths, and \pause
+                \item boundary conditions (BCs). \pause
+            \end{itemize}
+        \item At last, he is allowed to solve the equation by supplying $b$.
+        \note{
+            - $b$ is just an array of size (ns_x, ns_y, ns_z)
+            - Both $b$ and $\phi$ can be surrounded by ghost cells
+        }
+    \end{itemize}
+    \begin{exampleblock}{PoisFFT configuration example}
+        \begin{itemize}
+            \item 2D
+            \item Single-precision
+            \item Number of grid cells (8, 8)
+            \item Lengths of the domain ($2 \pi$, $1.1 \pi$)
+            \item BCs NeumannStag, NeumannStag, Periodic, Periodic
+            \note {
+                - In PoisFFT the notation is (x, y, z) for numbers and (west, east, south, north, bottom, top) for BCs
+            }
+        \end{itemize}
+    \end{exampleblock}
+    % TODO - Add an image of this example
+\end{frame}
+
+\begin{frame}
+    \frametitle{Inside view of PoisFFT}
+    PoisFFT has two phases:
+    \begin{enumerate}
+        \item \alert{initialization}, and
+            \begin{itemize}
+                \item TODO
+            \end{itemize}
+        \item (repeated) \alert{execution}.
+            \begin{itemize}
+                \item TODO
+            \end{itemize}
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Inside view of PoisFFT}
+    \begin{itemize}
+        \item It soon became apparent that despite the initially simple outline, this will not be easy...
+        % TODO - Show code snippets of ugly PoisFFT code
+    \end{itemize}
+\end{frame}
+
+\subsection{Solving method}
+\subsection{System architecture}
+
+\section{A modern PoisFFT port}
+\subsection{poisson-solver architecture}
+\subsection{Issues}
+\subsection{heFFTe fork}
+
+
+\section{Performance}
+\subsection{Local}
+\subsection{Distributed}
+
+\section{Conclusions}
 
 \section{Examples}
 \begin{frame}
