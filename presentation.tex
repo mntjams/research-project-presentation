@@ -1,17 +1,56 @@
 \documentclass{beamer}
-%Information to be included in the title page:
-\title{Sample title}
-\author{Anonymous}
-\institute{Overleaf}
-\date{2021}
+\usetheme{Boadilla}
+
+\title[Research project]
+{Improving Performance of a Poisson Solver}
+\author{Matouš Zatloukal}
+\date{2026}
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
 
 \begin{document}
 
 \frame{\titlepage}
 
+\section{Examples}
 \begin{frame}
 \frametitle{Sample frame title}
 This is some text in the first frame. This is some text in the first frame. This is some text in the first frame.
+\end{frame}
+
+\begin{frame}
+\frametitle{Sample frame title}
+This is a second sample frame.
+\begin{itemize}
+\item<1-> Text visible on slide 1
+\item<2-> Text visible on slide 2
+\item<3-> Text visible on slide 3
+\end{itemize}
+\end{frame}
+
+\section{Ending}
+
+\begin{frame}
+\frametitle{Some other title}
+Text can be \alert{highlighted}.
+
+\begin{block}{Remark}
+Something remarkable
+\end{block}
+
+\begin{alertblock}{Alerting block!}
+Alert! Alert!
+\end{alertblock}
+
+\begin{examples}
+Some examples
+\end{examples}
 \end{frame}
 
 \end{document}
