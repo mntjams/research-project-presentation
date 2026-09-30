@@ -1,6 +1,7 @@
 \documentclass{beamer}
 \usetheme{Boadilla}
 \usepackage{minted}
+\usepackage{tikz}
 
 \title[Research project]
 {Improving the Performance of a Poisson Solver}
@@ -110,19 +111,42 @@
             - Both $b$ and $\phi$ can be surrounded by ghost cells
         }
     \end{itemize}
-    \begin{exampleblock}{PoisFFT configuration example}
-        \begin{itemize}
-            \item 2D
-            \item Single-precision
-            \item Number of grid cells (8, 8)
-            \item Lengths of the domain ($2 \pi$, $1.1 \pi$)
-            \item BCs NeumannStag, NeumannStag, Periodic, Periodic
-            \note {
-                - In PoisFFT the notation is (x, y, z) for numbers and (west, east, south, north, bottom, top) for BCs
-            }
-        \end{itemize}
-    \end{exampleblock}
-    % TODO - Add an image of this example
+    \begin{columns}[T]
+        \begin{column}{0.55\textwidth}
+            \begin{exampleblock}{PoisFFT configuration example}
+                \begin{itemize}
+                    \item 2D
+                    \item Single-precision
+                    \item Number of grid cells (8, 8)
+                    \item Lengths of the domain ($2 \pi$, $1.1 \pi$)
+                    \item BCs NeumannStag, NeumannStag, Periodic, Periodic
+                    \note {
+                        - In PoisFFT the notation is (x, y, z) for numbers and (west, east, south, north, bottom, top) for BCs
+                    }
+                \end{itemize}
+            \end{exampleblock}
+        \end{column}
+        \begin{column}{0.45\textwidth}
+            \centering
+            \begin{tikzpicture}[x=0.36cm, y=0.198cm, font=\tiny]
+                % grid cells
+                \draw[step=1, gray!60, very thin] (0, 0) grid (8, 8);
+                % Neumann (west, east) and periodic (south, north) boundaries
+                \draw[red!70!black, very thick] (0, 0) -- (0, 8);
+                \draw[red!70!black, very thick] (8, 0) -- (8, 8);
+                \draw[blue!70!black, very thick, dashed] (0, 0) -- (8, 0);
+                \draw[blue!70!black, very thick, dashed] (0, 8) -- (8, 8);
+                % boundary labels
+                \node[red!70!black, rotate=90, anchor=south] at (0, 4) {Neumann};
+                \node[red!70!black, rotate=-90, anchor=south] at (8, 4) {Neumann};
+                \node[blue!70!black, anchor=south] at (4, 8.2) {Periodic};
+                \node[blue!70!black, anchor=north] at (4, -0.2) {Periodic};
+                % domain lengths
+                \draw[<->] (0, -3.6) -- node[below] {$2\pi$} (8, -3.6);
+                \draw[<->] (-2.6, 0) -- node[left] {$1.1\pi$} (-2.6, 8);
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \begin{frame}
