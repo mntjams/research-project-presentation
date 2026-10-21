@@ -1,0 +1,24 @@
+-- Showcase after presentation --
+
+- poisson-solver benchmarking neni zapnuty
+- (gpu-)elmm grid=256^3 a endtime=0.1 for local
+- (gpu-)elmm grid=128^3 a endtime=0.1 for distr
+
+--- Local ---
+srun -p gpu-ffa-gpulab -w bw01 -t 2:00:00 -c 16 --gpus 1 --pty ch-run -b mapped:/opt/build imgdir -- /bin/bash
+cd /opt/build
+poisson-solver/build/examples/local_with_pretty_print-cpp > ps.txt
+PoisFFT/bin/gcc/local_with_pretty_print > pf.txt
+diff ps.txt pf.txt
+
+cd /opt/build/gpu-elmm/examples/channel/
+../../bin/gcc/release/ELMM
+cd /opt/build/gpu-elmm/examples/channel/
+../../bin/gcc/release/ELMM
+
+--- Distr ---
+salloc -p gpu-ffa-gpulab -n 4 --gpus 4 -w volta[02,03] -c 8
+export UCX_POSIX_USE_PROC_LINK=n
+srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/poisson-solver/build/examples/ && ./distributed_uniform-cpp"
+srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/gpu-elmm/examples/channel && ../../bin/gcc/mpi-release/ELMM"
+srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/elmm/examples/channel && ../../bin/gcc/mpi-release/ELMM"
