@@ -1,11 +1,12 @@
 -- Showcase after presentation --
 
 - poisson-solver benchmarking neni zapnuty
-- (gpu-)elmm grid=256^3 a endtime=0.1 for local
-- (gpu-)elmm grid=128^3 a endtime=0.1 for distr
+- (gpu-)elmm grid=512^3, endtime=0.02 a Full neumann BCS for local
+- (gpu-)elmm grid=128^3, endtime=0.1 a Full neumann BCs for distr
+- Silent BC fallthrough in PoisFFT is 2D DDNN
 
 --- Local ---
-srun -p gpu-ffa-gpulab -w bw01 -t 2:00:00 -c 16 --gpus 1 --pty ch-run -b mapped:/opt/build imgdir -- /bin/bash
+srun -p gpu-ffa-gpulab -w bw01 -t 2:00:00 -c 48 --gpus 1 --pty ch-run -b mapped:/opt/build imgdir -- /bin/bash
 cd /opt/build
 poisson-solver/build/examples/local_with_pretty_print-cpp > ps.txt
 PoisFFT/bin/gcc/local_with_pretty_print > pf.txt
