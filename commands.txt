@@ -5,7 +5,7 @@
 - (gpu-)elmm grid=128^3, endtime=0.1 a Full neumann BCs for distr
 - Silent BC fallthrough in PoisFFT is 2D DDNN
 
---- Local ---
+--- Local - show fallthrough ---
 srun -p gpu-ffa-gpulab -w bw01 -t 2:00:00 -c 48 --gpus 1 --pty ch-run -b mapped:/opt/build imgdir -- /bin/bash
 cd /opt/build
 poisson-solver/build/examples/local_with_pretty_print-cpp > ps.txt
