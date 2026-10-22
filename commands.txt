@@ -1,8 +1,8 @@
 -- Showcase after presentation --
 
 - poisson-solver benchmarking neni zapnuty
-- (gpu-)elmm grid=512^3, endtime=0.02 a Full neumann BCS for local
-- (gpu-)elmm grid=128^3, endtime=0.1 a Full neumann BCs for distr
+- (gpu-)elmm grid=512^3, endtime=0.02 a Full neumann BCS
+- 256^3 grid for distr
 - Silent BC fallthrough in PoisFFT is 2D DDNN
 
 --- Local - show fallthrough ---
@@ -22,4 +22,6 @@ salloc -p gpu-ffa-gpulab -n 4 --gpus 4 -w volta[02,03] -c 8
 export UCX_POSIX_USE_PROC_LINK=n
 srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/poisson-solver/build/examples/ && ./distributed_uniform-cpp"
 srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/gpu-elmm/examples/channel && ../../bin/gcc/mpi-release/ELMM"
+exit
+salloc -p gpu-ffa-gpulab -n 32 --gpus 4 -w volta[02,03] -c 1
 srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/elmm/examples/channel && ../../bin/gcc/mpi-release/ELMM"
