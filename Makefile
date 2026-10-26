@@ -7,4 +7,5 @@ $(TARGET).pdf: $(TARGET).tex
 	pdflatex -shell-escape $(TARGET).tex
 
 clean:
-	rm -f *.aux *.log *.out *.pdf
+	rm -f *.aux *.log *.out *.pdf *.snm *.toc *.nav
+	rm -r _minted-presentation
