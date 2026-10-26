@@ -222,7 +222,7 @@
         \end{itemize}
     \end{itemize}
     \begin{block}{Solver plan}
-        A configuration-dependant plan that the rest of the solver follows
+        A configuration-dependant plan that the rest of the solver follows.
         Includes: the solve method, strategies for eigenvalue computation, reshape types, etc.
         \note {
             - Reshapes are used in MPI code to get one axis into a local memory
@@ -230,8 +230,8 @@
         }
     \end{block}\pause
     \begin{block}{Solver core}
-        Owns objects, buffers and precomputed values specified by the plan
-        E.g., precomputed eigenvalues, FFT plan, the reshaper or, device workspaces
+        Owns objects, buffers and precomputed values specified by the plan.
+        E.g., precomputed eigenvalues, FFT plan, the reshaper or, device workspaces.
         \note {
             - FFT libraries usually work by first defining a plan which optimizes for the specified FFT usage
             - Then, repeatedly executing such plan
@@ -242,15 +242,15 @@
 \begin{frame}
     \frametitle{The architecture of poisson-solver}
     \begin{block}{FFT policies}
-        Policies describing how to perform the FFTs depending on the build type
-        One is purely local, the other also works in distributed environments
+        Policies describing how to perform the FFTs depending on the build type.
+        One is purely local, the other also works in distributed environments.
         \note {
             - Different libraries are used for different build types
         }
     \end{block}\pause
     \begin{block}{Reshaper}
-        Certain steps of the execution pipeline require data locality
-        A reshaper object performs transitions between decompositions
+        Certain steps of the execution pipeline require data locality.
+        A reshaper object performs transitions between decompositions.
         \note {
             - The decompositions and transitions between them are precomputed during the solver core construction
         }
