@@ -370,13 +370,7 @@
             - Nodes didn't have inifiniband
             - Reshapes took most of the time
         }
-        \item PoisFFT takes $38\%$ or more of total ELMM time (in a distributed setup)\pause
-        \item But there is a problem...
-        \note {
-            - Problem of process allocation
-                - No middle ground found
-                - Hybrid ELMM parallelization doesn't solve this
-        }
+        \item PoisFFT takes $38\%$ or more of total ELMM time (in a distributed setup)
     \end{itemize}
 \end{frame}
 \begin{frame}
@@ -396,6 +390,18 @@
         \centering
         \includegraphics[width=1\textwidth]{distributed/float_prec_uniform_NNNNNN_nodes_utilized_3.png}
     \end{figure}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Distributed results}
+    \begin{itemize}
+        \item But there is a problem...
+    \end{itemize}
+    \note {
+        - Problem of process allocation
+            - No middle ground found
+            - Hybrid ELMM parallelization doesn't solve this
+    }
 \end{frame}
 
 \section{Conclusion}
