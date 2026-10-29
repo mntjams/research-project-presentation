@@ -34,24 +34,6 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{Computational fluid dynamics}
-    \begin{block}{Navier-Stokes equations}
-        The Navier-Stokes equations are
-        \[
-            \rho (\frac{\delta \mathbf{u}}{\delta t} + \mathbf{u} \cdot \nabla \mathbf{u}) = -\nabla p + \mu\nabla^2 \mathbf{u} + F
-        \]
-        \begin{itemize}
-            \item fluid density $\rho$
-            \item velocity vector field $\mathbf{u}$
-            \item time $t$
-            \item pressure field $p$
-            \item dynamic viscosity $\mu$
-            \item external forces $F$
-        \end{itemize}
-    \end{block}
-\end{frame}
-
-\begin{frame}
     \frametitle{ELMM}
     \begin{itemize}
         \item Extended Large Eddy Microscale Model (ELMM) is a Large Eddy Simulation (LES) model for atmospheric flows
@@ -423,6 +405,24 @@
         \item Don't do it by hand\pause
         \item Develop a system that compiles Fortran source code into C++/CUDA source code, handles buffer copying, etc.
     \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Computational fluid dynamics}
+    \begin{block}{Navier-Stokes equations}
+        The Navier-Stokes equations are
+        \[
+            \rho (\frac{\delta \mathbf{u}}{\delta t} + \mathbf{u} \cdot \nabla \mathbf{u}) = -\nabla p + \mu\nabla^2 \mathbf{u} + F
+        \]
+        \begin{itemize}
+            \item fluid density $\rho$
+            \item velocity vector field $\mathbf{u}$
+            \item time $t$
+            \item pressure field $p$
+            \item dynamic viscosity $\mu$
+            \item external forces $F$
+        \end{itemize}
+    \end{block}
 \end{frame}
 
 \end{document}
