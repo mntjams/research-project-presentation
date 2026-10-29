@@ -18,10 +18,11 @@ cd /opt/build/gpu-elmm/examples/channel/
 ../../bin/gcc/release/ELMM
 
 --- Distr ---
-salloc -p gpu-ffa-gpulab -n 4 --gpus 4 -w volta[02,03] -c 8
+salloc -p gpu-ffa-gpulab -N 2 -n 4 --gpus 4 -w volta[02,03] -c 8
 export UCX_POSIX_USE_PROC_LINK=n
 srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/poisson-solver/build/examples/ && ./distributed_uniform-cpp"
 srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/gpu-elmm/examples/channel && ../../bin/gcc/mpi-release/ELMM"
 exit
+
 salloc -p gpu-ffa-gpulab -n 32 --gpus 4 -w volta[02,03] -c 1
 srun --mpi=pmix ch-run -b mapped:/opt/build imgdir -- /bin/bash -c "cd /opt/build/elmm/examples/channel && ../../bin/gcc/mpi-release/ELMM"
