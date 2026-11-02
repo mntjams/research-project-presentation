@@ -22,27 +22,14 @@
 
 \section{Introduction}
 \begin{frame}
-    \frametitle{Computational fluid dynamics}
-    \begin{block}{What is CFD?}
-        Computational fluid dynamics (CFD) is a branch of fluid mechanics that employs numerical techniques to predict fluid flow\pause
-    \end{block}
-    \begin{itemize}
-        \item CFD is applied to a range of research and engineering problems, including aerodynamics, weather simulation, and heat transfer analysis\pause
-        \item The basis of CFD are the \alert{Navier-Stokes equations}
-        \item These describe motion of fluids
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
     \frametitle{ELMM}
     \begin{itemize}
-        \item Extended Large Eddy Microscale Model (ELMM) is a Large Eddy Simulation (LES) model for atmospheric flows
-        \item It is developed by the department of atmospheric physics
-        \item It is written in Fortran and parallelized using OpenMP, MPI, or hybrid MPI + OpenMP
+        \item Extended Large Eddy Microscale Model (ELMM) is a Large Eddy Simulation (LES) model for atmospheric flows\pause
+        \item Written in Fortran\pause
+        \item Parallelized using OpenMP, MPI, or hybrid MPI + OpenMP\pause
         \note {
             - Porting this code to GPUs could greatly benefit its performance
         }
-        \item It computes how wind moves in the atmosphere\pause
         \item In each time step a \alert{Poisson equation} must be solved
     \end{itemize}
     \begin{block}{Poisson equation}
@@ -57,18 +44,17 @@
     \end{block}
 \end{frame}
 
-\section{PoisFFT}
 \begin{frame}
-    \frametitle{Poisson solver}
+    \frametitle{PoisFFT - Poisson solver}
     \begin{itemize}
-        \item PoisFFT is a library developed by the department of atmospheric physics to solve the Poisson equation\pause
-        \item PoisFFT was determined to be the best starting point for ELMM performance improve\pause
-        \item It solves the equation using an FFT-based method\pause
+        \item Library that solves the Poisson equation\pause
+        \item Determined to be the best starting point for ELMM performance improvement\pause
         \note{
             - It is a self-contained library
             - Takes up noticable portion of the run-time
         }
-        \item Again, parallelized using OpenMP, MPI, or hybrid MPI + OpenMP
+        \item Solves the equation using an FFT-based method\pause
+        \item Parallelized the same way as ELMM
         \note {
             - While measuring the performance, we encountered several hybrid configurations where PoisFFT straight up segfaulted
             - See next slide for configuration definition
@@ -81,54 +67,19 @@
     \frametitle{Outside view of PoisFFT}
     \begin{itemize}
         \item The user first selects a solver based on dimensionality, floating-point precision, and grid uniformity\pause
-        \item Afterwards, he defines a domain\pause
+        \item User defines a domain:\pause
             \begin{itemize}
-                \item That is, number of grid cells,\pause
-                \item grid lengths, and\pause
+                \item dimensionality,\pause
+                \item number of grid cells,\pause
+                \item grid lengths\pause
                 \item boundary conditions (BCs)\pause
             \end{itemize}
-        \item At last, he is allowed to solve the equation by supplying $b$\pause
+        \item Then (repeatedly) solves the equation by supplying $b$
         \note{
             - $b$ is just an array of size (ns_x, ns_y, ns_z)
             - Both $b$ and $\phi$ can be surrounded by ghost cells
         }
     \end{itemize}
-    \begin{columns}[T]
-        \begin{column}{0.55\textwidth}
-            \begin{exampleblock}{PoisFFT configuration example}
-                \begin{itemize}
-                    \item 2D
-                    \item Single-precision
-                    \item Number of grid cells (8, 8)
-                    \item Lengths of the domain ($2 \pi$, $1.1 \pi$)
-                    \item BCs NeumannStag, NeumannStag, Periodic, Periodic
-                    \note {
-                        - In PoisFFT the notation is (x, y, z) for numbers and (west, east, south, north, bottom, top) for BCs
-                    }
-                \end{itemize}
-            \end{exampleblock}
-        \end{column}
-        \begin{column}{0.45\textwidth}
-            \centering
-            \begin{tikzpicture}[x=0.36cm, y=0.198cm, font=\tiny]
-                % grid cells
-                \draw[step=1, gray!60, very thin] (0, 0) grid (8, 8);
-                % Neumann (west, east) and periodic (south, north) boundaries
-                \draw[red!70!black, very thick] (0, 0) -- (0, 8);
-                \draw[red!70!black, very thick] (8, 0) -- (8, 8);
-                \draw[blue!70!black, very thick, dashed] (0, 0) -- (8, 0);
-                \draw[blue!70!black, very thick, dashed] (0, 8) -- (8, 8);
-                % boundary labels
-                \node[red!70!black, rotate=90, anchor=south] at (0, 4) {Neumann};
-                \node[red!70!black, rotate=-90, anchor=south] at (8, 4) {Neumann};
-                \node[blue!70!black, anchor=south] at (4, 8.2) {Periodic};
-                \node[blue!70!black, anchor=north] at (4, -0.2) {Periodic};
-                % domain lengths
-                \draw[<->] (0, -3.6) -- node[below] {$2\pi$} (8, -3.6);
-                \draw[<->] (-2.6, 0) -- node[left] {$1.1\pi$} (-2.6, 8);
-            \end{tikzpicture}
-        \end{column}
-    \end{columns}
 \end{frame}
 
 \begin{frame}
@@ -166,9 +117,9 @@
             - D1D is a 1D solver, but we never use it to solve anything, it is used to just hold data
             - tmp1, tmp2, ctmp1, ctmp2
         }
-        \item The architecture is very simple\pause
+        \item The architecture is not ideal\pause
         \begin{itemize}
-            \item If-else block in every function!
+            \item If-else block in every function!\pause
             \item These sometimes span hundreds of lines
             \note {
                 - It is entirely possible to create a solver without an error but the solver does nothing on each Execute
@@ -249,17 +200,13 @@
         \item PoisFFT uses FFTW to perform the local transforms\pause
         \item FFTW is a state-of-the-art FFT library for CPU-based code\pause
         \begin{itemize}
-            \item Parallelized via OpenMP and vectorized\pause
             \item \alert{Supports many different DFT types}\pause
             \note {
                 - Complex and real data, DCTs, DSTs
                 - PoisFFT used many of the supported DFT types
             }
         \end{itemize}
-        \item Distributed libraries build on top of FFTW\pause
-        \begin{itemize}
-            \item PFFT, FFTW MPI
-        \end{itemize}
+        \item Distributed libraries build on top of FFTW
     \end{itemize}
 \end{frame}
 
@@ -267,13 +214,11 @@
     \frametitle{GPU-based FFT libraries}
     \begin{itemize}
         \item GPU-based alternatives often lack such diverse support\pause
+        \item We found a single-node GPU FFT library\pause
         \item We didn't found a distributed library with the required support...\pause
-        \note {
-            - We found a local library - VkFFT
-        }
         \item So we chose one and extended it!
         \note {
-            - We have not yet contacted the authors about a possible merge
+            - The authors have opened pull request on their repo
         }
     \end{itemize}
 \end{frame}
@@ -282,38 +227,23 @@
 \begin{frame}
     \frametitle{What did we measure?}
     \begin{itemize}
-        \item PoisFFT vs poisson-solver CPU API vs poisson-solver GPU API\pause
-        \item MPI for distributed parallelization\pause
-        \note {
-            - No hybrid because it was unstable
-        }
-        \item Tens of BC combinations\pause
-        \item 1D, 2D and 3D\pause
-        \item double and float precisions\pause
-        \item Grid side sizes from 64 to 512
-        \note {
-            - Presenting 3D solver results as those are relevant to ELMM
-        }
+        \item PoisFFT \pause vs poisson-solver (with host-device copies) \pause vs poisson-solver (with only device-device copies)\pause
+        \item PoisFFT hybrid parallelization unstable...
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Local results}
     \begin{itemize}
-        \item poisson-solver (GPU API) always wins!\pause
+        \item poisson-solver (only device-device copies) always wins!\pause
         \begin{itemize}
             \item 2.4x to 10.4x speedups (25th to 75th percentile)\pause
             \item Maximum speedup is 113x\pause
         \end{itemize}
-        \item poisson-solver (CPU API) wins in $\sim 60\%$ of cases\pause
+        \item poisson-solver (with host-device copies) wins in $\sim 60\%$ of cases\pause
         \begin{itemize}
-            \item 0.75x to 1.80x speedups (25th to 75th percentile)\pause
-            \item Buffer copying is the clear bottleneck\pause
+            \item 0.75x to 1.80x speedups (25th to 75th percentile)
         \end{itemize}
-        \item PoisFFT takes $\sim 8\%$ of total ELMM time (in a local setup)
-        \note {
-            - This depends on the amount of cores you use (per the original paper)
-        }
     \end{itemize}
 \end{frame}
 
@@ -337,6 +267,17 @@
 \end{frame}
 
 \begin{frame}
+    \frametitle{Local results}
+    \begin{itemize}
+        \item Buffer copying is the clear bottleneck\pause
+        \item PoisFFT takes $\sim 8\%$ of total ELMM time (in a local setup)
+        \note {
+            - This depends on the amount of cores you use (per the original paper)
+        }
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
     \frametitle{Distributed results}
     \begin{itemize}
         \item poisson-solver (GPU API) always wins!\pause
@@ -345,16 +286,11 @@
         \end{itemize}
         \item poisson-solver (CPU API) also always wins!\pause
         \begin{itemize}
-            \item 1.31x to 2.36x speedups (25th to 75th percentile)\pause
+            \item 1.31x to 2.36x speedups (25th to 75th percentile)
         \end{itemize}
-        \item No clear bottleneck found\pause
-        \note {
-            - Nodes didn't have inifiniband
-            - Reshapes took most of the time
-        }
-        \item PoisFFT takes $38\%$ or more of total ELMM time (in a distributed setup)
     \end{itemize}
 \end{frame}
+
 \begin{frame}
     \begin{figure}
         \centering
@@ -375,9 +311,20 @@
 \end{frame}
 
 \begin{frame}
+    \begin{itemize}
+        \item No clear bottleneck found\pause
+        \note {
+            - Nodes didn't have inifiniband
+            - Reshapes took most of the time
+        }
+        \item PoisFFT takes $38\%$ or more of total ELMM time (in a distributed setup)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
     \frametitle{Distributed results}
     \begin{itemize}
-        \item But there is a problem...
+        \item But there is a problem in ELMM integration...
     \end{itemize}
     \note {
         - Problem of process allocation
@@ -391,10 +338,13 @@
     \frametitle{Achievements}
     \begin{itemize}
         \item Ported and modernized a Poisson solver library\pause
-        \item Significant software architecture improvements\pause
-        \item Performance improvement for all setups with buffers already on a GPU\pause
-        \item Performance improvement for all distributed setups\pause
-        \item Performance improvement for most of local setups when copy is inevitable
+        \item Significantly improved software architecture\pause
+        \item Performance improvement for:
+            \begin{itemize}
+                \item all setups with buffers already on a GPU,\pause
+                \item most of local setups when copy is inevitable,\pause
+                \item all distributed setups
+            \end{itemize}
     \end{itemize}
 \end{frame}
 
@@ -405,6 +355,11 @@
         \item Don't do it by hand\pause
         \item Develop a system that compiles Fortran source code into C++/CUDA source code, handles buffer copying, etc.
     \end{itemize}
+\end{frame}
+
+\begin{frame}[c]{}
+    \centering
+        \Huge Thank you for your attention!
 \end{frame}
 
 \begin{frame}
