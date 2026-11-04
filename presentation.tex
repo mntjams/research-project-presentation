@@ -2,6 +2,22 @@
 \usetheme{Boadilla}
 \usepackage{minted}
 \usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+
+% Overlay-aware TikZ visibility: hidden parts still take up space, so the
+% layout doesn't shift between overlays. Usage: \draw[visible on=<2->] ...
+\tikzset{
+    invisible/.style={opacity=0},
+    visible on/.style={alt={#1{}{invisible}}},
+    alt/.code args={<#1>#2#3}{%
+        \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}}%
+    },
+}
+
+% Colours of the poisson-solver architecture schema
+\definecolor{archdecision}{HTML}{1F5FA8}
+\definecolor{archimplication}{HTML}{1B7F5C}
+\definecolor{archcompile}{HTML}{C8640A}
 
 \title[Research project]
 {Improving the Performance of a Poisson Solver}
@@ -138,50 +154,109 @@
 
 \begin{frame}
     \frametitle{The architecture of poisson-solver}
-    \begin{itemize}
-        \item poisson-solver makes a clear distinction between:\pause
-        \begin{itemize}
-            \item Configuration-based decisions
-            \item Implications of those decisions
-            \item Compile-time setup\pause
-        \end{itemize}
-    \end{itemize}
-    % TODO - Make this into a schema that summarizes what is inside each block and how the block relate to each other (you can also invent new blocks that you deem necessary)
-    % This TODO also applies to the next frame/slide
-    \begin{block}{Solver plan}
-        A configuration-dependant plan that the rest of the solver follows.
-        Includes: the solve method, strategies for eigenvalue computation, reshape types, etc.
-        \note {
-            - Reshapes are used in MPI code to get one axis into a local memory
-            - Reshape types are e.g. (to pencil, to slab)
-        }
-    \end{block}\pause
-    \begin{block}{Solver core}
-        Owns objects, buffers and precomputed values specified by the plan.
-        E.g., precomputed eigenvalues, FFT plan, the reshaper or, device workspaces.
-        \note {
-            - FFT libraries usually work by first defining a plan which optimizes for the specified FFT usage
-            - Then, repeatedly executing such plan
-        }
-    \end{block}
-\end{frame}
+    \centering
+    \begin{tikzpicture}[
+        font=\scriptsize,
+        box/.style={draw, rounded corners=2pt, line width=0.6pt},
+        setup/.style={-{Stealth[length=1.6mm]}, line width=0.6pt},
+        solve/.style={setup, dashed},
+        title/.style={font=\scriptsize\bfseries},
+    ]
+        % === Overlay 1: Solver outline and legend ===
+        \draw[box, draw=black!55, fill=black!3] (0,-0.85) rectangle (6.64,-4.85);
+        \node[title, anchor=west] at (0.05,-1.1) {Solver};
 
-\begin{frame}
-    \frametitle{The architecture of poisson-solver}
-    \begin{block}{FFT policies}
-        Policies describing how to perform the FFTs depending on the build type.
-        One is purely local, the other also works in distributed environments.
-        \note {
-            - Different libraries are used for different build types
-        }
-    \end{block}\pause
-    \begin{block}{Reshaper}
-        Certain steps of the execution pipeline require data locality.
-        A reshaper object performs transitions between decompositions.
-        \note {
-            - The decompositions and transitions between them are precomputed during the solver core construction
-        }
-    \end{block}
+        \fill[archdecision] (0,-5.3) rectangle (0.25,-5.12);
+        \node[anchor=west] at (0.3,-5.21) {Configuration-based decisions};
+        \fill[archimplication] (5.4,-5.3) rectangle (5.65,-5.12);
+        \node[anchor=west] at (5.7,-5.21) {Implications of those decisions};
+        \fill[archcompile] (0,-5.75) rectangle (0.25,-5.57);
+        \node[anchor=west] at (0.3,-5.66) {Compile-time setup};
+        \draw[setup] (5.4,-5.66) -- (5.9,-5.66);
+        \node[anchor=west] at (5.95,-5.66) {setup};
+        \draw[solve] (7.4,-5.66) -- (7.9,-5.66);
+        \node[anchor=west] at (7.95,-5.66) {each solve};
+
+        % === Overlay 2: configuration-based decisions ===
+        \begin{scope}[visible on=<2->]
+            \node at (1.295,0) {Boundary conditions};
+            \draw[setup] (1.295,-0.2) -- (1.295,-1.35);
+
+            \draw[box, draw=archdecision, fill=archdecision!10]
+                (0.12,-1.35) rectangle (2.47,-4.3);
+            \node[title, text=archdecision] at (1.295,-1.62) {Solver plan};
+            \node at (1.295,-2.25) {axis strategies};
+            \node at (1.295,-2.7) {FFT layout};
+            \node at (1.295,-3.15) {reshape types};
+            \draw[box, draw=archdecision, fill=white]
+                (0.345,-3.6) rectangle (2.245,-4.1);
+            \node at (1.295,-3.85) {solve method};
+        \end{scope}
+
+        % === Overlay 3: implications of those decisions ===
+        \begin{scope}[visible on=<3->]
+            \node[align=center] at (4.2,0) {Grid (+ MPI\\communicator)};
+            \draw[setup] (4.2,-0.3) -- (4.2,-1.35);
+
+            \draw[box, draw=archimplication, fill=archimplication!10]
+                (3.72,-1.35) rectangle (6.52,-4.3);
+            \node[title, text=archimplication, anchor=west] at (3.87,-1.62)
+                {Solver core};
+
+            \draw[box, draw=archcompile, fill=archcompile!15]
+                (3.92,-1.9) rectangle (6.32,-2.4);
+            \node at (5.12,-2.15) {Reshaper};
+            \draw[box, draw=archimplication, fill=white]
+                (3.92,-2.55) rectangle (6.32,-3.05);
+            \node at (5.12,-2.8) {FFT plan};
+            \node[align=center] at (5.12,-3.47)
+                {eigenvalues,\\normalization factor};
+            \node at (5.12,-4.05) {device workspaces};
+
+            \draw[setup] (2.47,-1.62) -- (3.72,-1.62)
+                node[midway, above, inner sep=1.5pt] {specifies};
+        \end{scope}
+
+        % === Overlay 4: compile-time setup ===
+        \begin{scope}[visible on=<4->]
+            \node at (9.5,0) {Build type};
+            \draw[setup] (9.5,-0.2) -- (9.5,-1.35);
+            \draw[setup] (8.85,0) -- (5.8,0) -- (5.8,-1.9);
+
+            \draw[box, draw=archcompile, fill=archcompile!15]
+                (8.3,-1.35) rectangle (10.7,-3.3);
+            \node[title, text=archcompile] at (9.5,-1.62) {FFT policies};
+            \node at (9.5,-2.15) {local FFTs};
+            \node at (9.5,-2.5) {or};
+            \node at (9.5,-2.85) {distributed FFTs};
+
+            \draw[setup] (8.3,-2.8) -- (6.32,-2.8);
+            \node[above, inner sep=1.5pt] at (7.47,-2.8) {builds};
+        \end{scope}
+
+        % === Overlay 5: what happens on each solve ===
+        \begin{scope}[visible on=<5->]
+            \draw[solve] (2.245,-3.85) -- (3.1,-3.85) -- (3.1,-2.15)
+                -- (3.92,-2.15);
+            \draw[solve] (1.295,-4.1) -- (1.295,-4.58) -- (9.5,-4.58)
+                -- (9.5,-3.3);
+            \node[align=center] at (8.05,-4.2) {runs FFTs\\using FFT plan};
+        \end{scope}
+    \end{tikzpicture}
+    \note {
+        - Reshapes are used in MPI code to get one axis into a local memory
+        - Reshape types are e.g. (to pencil, to slab)
+    }
+    \note {
+        - FFT libraries usually work by first defining a plan which optimizes for the specified FFT usage
+        - Then, repeatedly executing such plan
+    }
+    \note {
+        - Different libraries are used for different build types
+    }
+    \note {
+        - The decompositions and transitions between them are precomputed during the solver core construction
+    }
 \end{frame}
 
 \section{Performance}
