@@ -2,7 +2,7 @@
 \usetheme{Boadilla}
 \usepackage{minted}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta}
+\usetikzlibrary{arrows.meta, shapes.callouts}
 
 % Overlay-aware TikZ visibility: hidden parts still take up space, so the
 % layout doesn't shift between overlays. Usage: \draw[visible on=<2->] ...
@@ -310,15 +310,27 @@
     \frametitle{Local results}
     \begin{figure}
         \centering
-        \includegraphics[width=0.85\textwidth]{local/double_prec_3D_uniform_DsDsDsDsDsDs_512side.png}
-    \end{figure}\pause
-    \begin{itemize}
-        % TODO - Can this be made into like a bubble that "comments" the plot?
-        \item Buffer copying is the clear bottleneck
-        \note {
-            - This depends on the amount of cores you use (per the original paper)
-        }
-    \end{itemize}
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (plot) at (0,0)
+                {\includegraphics[width=0.85\textwidth]{local/double_prec_3D_uniform_DsDsDsDsDsDs_512side.png}};
+            % Coordinates relative to the plot: (0,0) is its bottom left corner, (1,1) its top right
+            \begin{scope}[x={(plot.south east)}, y={(plot.north west)}]
+                \node[
+                    visible on=<2->,
+                    rectangle callout,
+                    callout absolute pointer={(0.50,0.63)},
+                    draw=red!70!black,
+                    line width=0.6pt,
+                    fill=white,
+                    align=center,
+                    font=\footnotesize,
+                ] at (0.75,0.80) {Buffer copying is\\the clear bottleneck};
+            \end{scope}
+        \end{tikzpicture}
+    \end{figure}
+    \note {
+        - This depends on the amount of cores you use (per the original paper)
+    }
 \end{frame}
 
 \begin{frame}
@@ -377,12 +389,16 @@
 \end{frame}
 
 \begin{frame}[c]{}
-    % TODO - How to make this the last slide number?
     \centering
         \Huge Thank you for your attention!
 \end{frame}
 
-\begin{frame}
+% Backup slides: the footer shows no slide number from here on.
+% Every frame below needs [noframenumbering], so that the total slide count
+% ends at the "Thank you" slide.
+\setbeamertemplate{page number in head/foot}{}
+
+\begin{frame}[noframenumbering]
     \frametitle{Computational fluid dynamics}
     \begin{block}{Navier-Stokes equations}
         The Navier-Stokes equations are
@@ -410,7 +426,7 @@
     \end{block}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[noframenumbering]
     \frametitle{Future work}
     \begin{itemize}
         \item Port more of ELMM onto a GPU\pause
@@ -419,7 +435,7 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[noframenumbering]
     % TODO - Where to put this?
     \frametitle{GPU-based FFT libraries}
     \begin{itemize}
