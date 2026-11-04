@@ -66,12 +66,11 @@
 \begin{frame}
     \frametitle{Outside view of PoisFFT}
     \begin{itemize}
-        \item The user first selects a solver based on dimensionality, floating-point precision, and grid uniformity\pause
         \item User defines a domain:\pause
             \begin{itemize}
-                \item dimensionality,\pause
-                \item number of grid cells,\pause
-                \item grid lengths\pause
+                \item dimensionality,
+                \item number of grid cells,
+                \item grid lengths, and
                 \item boundary conditions (BCs)\pause
             \end{itemize}
         \item Then (repeatedly) solves the equation by supplying $b$
@@ -84,15 +83,15 @@
 
 \begin{frame}
     \frametitle{Inside view of PoisFFT}
-    PoisFFT has two phases:
+    PoisFFT has two phases:\pause
     \begin{enumerate}
-        \item \alert{initialization}, and
+        \item \alert{initialization}, and\pause
             \begin{itemize}
                 \item Precompute the normalization factor and eigenvalues,
-                \item prepare FFT plan (or plans), and
+                \item prepare FFT plan (or plans), and\
                 \item allocate workspaces\pause
             \end{itemize}
-        \item (repeated) \alert{execution}
+        \item (repeated) \alert{execution}\pause
             \begin{itemize}
                 \item Apply forward FFT,
                 \item divide every element by a sum of pre-computed eigenvalues,
@@ -109,23 +108,17 @@
     \frametitle{Inside view of PoisFFT}
     \begin{itemize}
         \item It became apparent that despite the initially simple outline, this will not be easy...\pause
-        \item PoisFFT has \alert{no documentation} and only limited usage guide\pause
-        \item There are $\sim 140$ lines with comments in the $\sim 10 000$ lines of code\pause
-        \item Many (function, variable, etc.) names are non-descriptive\pause
+        \item PoisFFT has \alert{no documentation} and only limited usage guide, is sparsely commented with poor code hygiene\pause
         \note {
             - D is a solver
             - D1D is a 1D solver, but we never use it to solve anything, it is used to just hold data
             - tmp1, tmp2, ctmp1, ctmp2
         }
-        \item The architecture is not ideal\pause
-        \begin{itemize}
-            \item If-else block in every function!\pause
-            \item These sometimes span hundreds of lines
-            \note {
-                - It is entirely possible to create a solver without an error but the solver does nothing on each Execute
-                - They are interleaved with ifdefs to form if-else blocks based on compile time definitions
-            }
-        \end{itemize}
+        \item The architecture is not ideal
+        \note {
+            - It is entirely possible to create a solver without an error but the solver does nothing on each Execute
+            - They are interleaved with ifdefs to form if-else blocks based on compile time definitions
+        }
     \end{itemize}
 \end{frame}
 
@@ -149,8 +142,8 @@
     \begin{itemize}
         \item poisson-solver makes a clear distinction between:\pause
         \begin{itemize}
-            \item configuration-based decisions,\pause
-            \item implications of those decisions, and\pause
+            \item configuration-based decisions,
+            \item implications of those decisions, and
             \item compile-time setup\pause
         \end{itemize}
     \end{itemize}
@@ -187,32 +180,13 @@
         \note {
             - The decompositions and transitions between them are precomputed during the solver core construction
         }
-    \end{block}\pause
-    \begin{itemize}
-        \item This separation of concerns greatly reduced the number of kernels\pause
-        \item Many kernels with only minor differences could be merged
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{FFT libraries in PoisFFT}
-    \begin{itemize}
-        \item PoisFFT uses FFTW to perform the local transforms\pause
-        \item FFTW is a state-of-the-art FFT library for CPU-based code\pause
-        \begin{itemize}
-            \item \alert{Supports many different DFT types}\pause
-            \note {
-                - Complex and real data, DCTs, DSTs
-                - PoisFFT used many of the supported DFT types
-            }
-        \end{itemize}
-        \item Distributed libraries build on top of FFTW
-    \end{itemize}
+    \end{block}
 \end{frame}
 
 \begin{frame}
     \frametitle{GPU-based FFT libraries}
     \begin{itemize}
+        \item CPU-based libraries offer a diverse support of DFTs\pause
         \item GPU-based alternatives often lack such diverse support\pause
         \item We found a single-node GPU FFT library\pause
         \item We didn't found a distributed library with the required support...\pause
@@ -227,8 +201,7 @@
 \begin{frame}
     \frametitle{What did we measure?}
     \begin{itemize}
-        \item PoisFFT \pause vs poisson-solver (with host-device copies) \pause vs poisson-solver (with only device-device copies)\pause
-        \item PoisFFT hybrid parallelization unstable...
+        \item PoisFFT \pause vs poisson-solver (with host-device copies) \pause vs poisson-solver (with only device-device copies)
     \end{itemize}
 \end{frame}
 
@@ -269,8 +242,7 @@
 \begin{frame}
     \frametitle{Local results}
     \begin{itemize}
-        \item Buffer copying is the clear bottleneck\pause
-        \item PoisFFT takes $\sim 8\%$ of total ELMM time (in a local setup)
+        \item Buffer copying is the clear bottleneck
         \note {
             - This depends on the amount of cores you use (per the original paper)
         }
@@ -280,11 +252,11 @@
 \begin{frame}
     \frametitle{Distributed results}
     \begin{itemize}
-        \item poisson-solver (GPU API) always wins!\pause
+        \item poisson-solver (only device-device copies) always wins!\pause
         \begin{itemize}
             \item 1.39x to 2.6x speedups (25th to 75th percentile)\pause
         \end{itemize}
-        \item poisson-solver (CPU API) also always wins!\pause
+        \item poisson-solver (with host-device copies) also always wins!\pause
         \begin{itemize}
             \item 1.31x to 2.36x speedups (25th to 75th percentile)
         \end{itemize}
@@ -311,19 +283,13 @@
 \end{frame}
 
 \begin{frame}
+    \frametitle{Distributed results}
     \begin{itemize}
         \item No clear bottleneck found\pause
         \note {
             - Nodes didn't have inifiniband
             - Reshapes took most of the time
         }
-        \item PoisFFT takes $38\%$ or more of total ELMM time (in a distributed setup)
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-    \frametitle{Distributed results}
-    \begin{itemize}
         \item But there is a problem in ELMM integration...
     \end{itemize}
     \note {
@@ -339,7 +305,7 @@
     \begin{itemize}
         \item Ported and modernized a Poisson solver library\pause
         \item Significantly improved software architecture\pause
-        \item Performance improvement for:
+        \item Performance improvement for:\pause
             \begin{itemize}
                 \item all setups with buffers already on a GPU,\pause
                 \item most of local setups when copy is inevitable,\pause
