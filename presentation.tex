@@ -42,27 +42,29 @@
     \begin{itemize}
         \item Extended Large Eddy Microscale Model (ELMM) is a model for atmospheric flows
         \item Written in Fortran
-        \item Parallelized using OpenMP, MPI, or hybrid MPI + OpenMP\pause
+        \item Parallelized using OpenMP, MPI, or hybrid MPI + OpenMP
         \note {
             - Porting this code to GPUs could greatly benefit its performance
         }
-        \item In each time step a \alert{Poisson equation} must be solved\pause
     \end{itemize}
     \begin{figure}
         \centering
         \includegraphics[width=0.5\textwidth]{ELMM-Simulation.png}
-    \end{figure}
+    \end{figure}\pause
+    \begin{itemize}
+        \item In each time step a \alert{Poisson equation} must be solved
+    \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{PoisFFT - Poisson solver}
     \begin{itemize}
-        \item Solves the Poisson equation using FFT-based mathods
+        \item Solves the Poisson equation using FFT-based methods
         \item Parallelized the same way as ELMM
         \item Best starting point for ELMM performance improvement
         \note{
             - It is a self-contained library
-            - Takes up noticable portion of the run-time
+            - Takes up noticable portion of the runtime
         }
         \note {
             - While measuring the performance, we encountered several hybrid configurations where PoisFFT straight up segfaulted
@@ -82,7 +84,7 @@
                 \item Grid lengths
                 \item Boundary conditions\pause
             \end{itemize}
-        \item Then (repeatedly) solves the equation by supplying $b$
+        \item Then (repeatedly) solves the equation
         \note{
             - $b$ is just an array of size (ns_x, ns_y, ns_z)
             - Both $b$ and $\phi$ can be surrounded by ghost cells
@@ -94,16 +96,16 @@
     \frametitle{Inside view of PoisFFT}
     PoisFFT has two phases:\pause
     \begin{enumerate}
-        \item \alert{initialization}, and\pause
+        \item \alert{Initialization}\pause
             \begin{itemize}
                 \item Precompute the normalization factor and eigenvalues
                 \item Prepare FFT plan (or plans)
                 \item Allocate workspaces\pause
             \end{itemize}
-        \item (repeated) \alert{execution}\pause
+        \item (repeated) \alert{Execution}\pause
             \begin{itemize}
                 \item Apply forward FFT
-                \item Divide every element by a sum of pre-computed eigenvalues
+                \item Divide every element by a sum of precomputed eigenvalues
                 \item Apply backward FFT
                 \item Normalize the result
                 \note {
@@ -122,7 +124,7 @@
                 \item No documentation\pause
                 \item Limited usage guide\pause
                 \item Poor architecture design\pause
-                \item Sparsely commeted code\pause
+                \item Sparsely commented code\pause
                 \item Bad code hygiene
             \end{itemize}
         \note {
@@ -139,7 +141,7 @@
 
 \section{poisson-solver}
 \begin{frame}
-    \frametitle{poisson-solver — a modern PoisFFT port}
+    \frametitle{poisson-solver - a modern PoisFFT port}
     \begin{alertblock}{Our goal}
         Create a PoisFFT GPU port with better performance and better software architecture\pause
     \end{alertblock}
